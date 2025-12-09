@@ -1,3 +1,6 @@
+<?php
+include '../config.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <!-- [Head] start -->
@@ -214,20 +217,27 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td><a href="#" class="text-muted">845</a></td>
-                      <td>Camera Lens</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td><a href="#" class="text-muted">840</a></td>
-                      <td>Laptop</td>
-                      <td></td>
-                    </tr>
-  
-       
-     
-         
+                    <?php
+                    // Fetch all categories from database
+                    $sql = "SELECT id_categoria, nome FROM categorias";
+                    $result = $conn->query($sql);
+
+                    if ($result->num_rows > 0) {
+                      // Output data for each row
+                      while ($row = $result->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td><a href='#' class='text-muted'>" . htmlspecialchars($row['id_categoria']) . "</a></td>";
+                        echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
+                        echo "<td class='text-end'>";
+                        echo "<a href='editar-categoria.php?id=" . $row['id_categoria'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";
+                        echo "<a href='apagar-categoria.php?id=" . $row['id_categoria'] . "' class='btn btn-sm btn-icon btn-danger' onclick=\"return confirm('Tem a certeza que deseja eliminar?');\" ><i class='ti ti-trash'></i></a>";
+                        echo "</td>";
+                        echo "</tr>";
+                      }
+                    } else {
+                      echo "<tr><td colspan='3' class='text-center'>Nenhuma categoria encontrada</td></tr>";
+                    }
+                    ?>
                   </tbody>
                 </table>
               </div>
