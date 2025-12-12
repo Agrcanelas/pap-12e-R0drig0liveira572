@@ -1,3 +1,49 @@
+<?php
+include '../config.php';
+
+// Count total utilizadores for dashboard
+$total_utilizadores = 0;
+$sql_count = "SELECT COUNT(*) AS total FROM utilizadores";
+if ($stmt_count = $conn->prepare($sql_count)) {
+  if ($stmt_count->execute()) {
+    $stmt_count->bind_result($total_utilizadores);
+    $stmt_count->fetch();
+    $total_utilizadores = (int) $total_utilizadores;
+  }
+  $stmt_count->close();
+} else {
+  // In case of error, keep $total_utilizadores = 0
+}
+
+// Count total serviços for dashboard
+$total_servicos = 0;
+$sql_count = "SELECT COUNT(*) AS total FROM servicos";
+if ($stmt_count = $conn->prepare($sql_count)) {
+  if ($stmt_count->execute()) {
+    $stmt_count->bind_result($total_servicos);
+    $stmt_count->fetch();
+    $total_servicos = (int) $total_servicos;
+  }
+  $stmt_count->close();
+} else {
+  // In case of error, keep $total_servicos = 0
+}
+
+// Count total transacoes for dashboard
+$total_transacoes = 0;
+$sql_count = "SELECT COUNT(*) AS total FROM transacoes";
+if ($stmt_count = $conn->prepare($sql_count)) {
+  if ($stmt_count->execute()) {
+    $stmt_count->bind_result($total_transacoes);
+    $stmt_count->fetch();
+    $total_transacoes = (int) $total_transacoes;
+  }
+  $stmt_count->close();
+} else {
+  // In case of error, keep $total_transacoes = 0
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <!-- [Head] start -->
@@ -178,7 +224,7 @@
           <div class="card">
             <div class="card-body">
               <h6 class="mb-2 f-w-400 text-muted">Utilizadores</h6>
-              <h4 class="mb-3">10
+              <h4 class="mb-3"><?php echo htmlspecialchars($total_utilizadores); ?></h4>
             </div>
           </div>
         </div>
@@ -186,7 +232,7 @@
           <div class="card">
             <div class="card-body">
               <h6 class="mb-2 f-w-400 text-muted">Serviços</h6>
-              <h4 class="mb-3">20
+              <h4 class="mb-3"><?php echo htmlspecialchars($total_servicos); ?></h4>
             </div>
           </div>
         </div>
@@ -194,7 +240,7 @@
           <div class="card">
             <div class="card-body">
               <h6 class="mb-2 f-w-400 text-muted">Transações</h6>
-              <h4 class="mb-3">50
+              <h4 class="mb-3"><?php echo htmlspecialchars($total_transacoes); ?></h4>
             </div>
           </div>
         </div>
