@@ -1,3 +1,45 @@
+<?php
+include '../config.php';
+$message = '';
+$message_type = '';
+
+// Check if form is submitted
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+  // Get form data
+  $nome = isset($_POST['nome']) ? trim($_POST['nome']) : '';
+  $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+  $password = isset($_POST['password']) ? trim($_POST['password']) : '';
+  $creditos = isset($_POST['creditos']) ? (int)$_POST['creditos'] : 0;
+  $foto = isset($_POST['foto']) ? trim($_POST['foto']) : '';
+  $perfil = isset($_POST['perfil']) ? trim($_POST['perfil']) : '';
+
+  // Validate input
+  if (empty($nome)) {
+    $message = 'Por favor, preencha o campo nome.';
+    $message_type = 'error';
+  } else {
+    // Prepare and execute insert query
+    $sql = "INSERT INTO utilizadores (nome, email, password, creditos, foto, perfil) VALUES (?,?,?,?,?,?)";
+    $stmt = $conn->prepare($sql);
+    
+    if ($stmt) {
+      $stmt->bind_param("sssisi", $nome, $email, $password, $creditos, $foto, $perfil);
+      
+      if ($stmt->execute()) {
+        $message = 'Utilizador adicionado com sucesso!';
+        $message_type = 'success';
+      } else {
+        $message = 'Erro ao adicionar utilizador: ' . $stmt->error;
+        $message_type = 'error';
+      }
+      $stmt->close();
+    } else {
+      $message = 'Erro na preparação da consulta: ' . $conn->error;
+      $message_type = 'error';
+    }
+  }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <!-- [Head] start -->
@@ -190,6 +232,16 @@
             <div class="card-body">
 
             <div class="form-group mb-3">
+                <?php
+                // Display message if exists
+                if (!empty($message)) {
+                  $alert_class = $message_type == 'success' ? 'alert-success' : 'alert-danger';
+                  echo "<div class='alert {$alert_class} alert-dismissible fade show' role='alert'>";
+                  echo htmlspecialchars($message);
+                  echo "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                  echo "</div>";
+                }
+                ?>
               <form action="" method="POST">
                 <label class="form-label">Nome</label>
               <input type="text" class="form-control" name="nome" id="nome" required=""><br>
