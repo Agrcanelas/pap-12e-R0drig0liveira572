@@ -1,3 +1,44 @@
+<?php
+include '../config.php';
+
+$message = '';
+$message_type = '';
+
+// Check if form is submitted
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+  // Get form data
+  $nome = isset($_POST['nome']) ? trim($_POST['nome']) : '';
+  $descricao = isset($_POST['descricao']) ? trim($_POST['descricao']) : '';
+  $categoria = isset($_POST['categoria']) ? trim($_POST['categoria']) : ''; 
+  $horas = isset($_POST['horas']) ? trim($_POST['horas']) : '';
+
+  // Validate input
+  if (empty($nome)) {
+    $message = 'Por favor, preencha o campo nome.';
+    $message_type = 'error';
+  } else {
+    // Prepare and execute insert query
+    $sql = "INSERT INTO servicos (nome, descricao, categoria, horas) VALUES (?,?,?,?)";
+    $stmt = $conn->prepare($sql);
+    
+    if ($stmt) {
+      $stmt->bind_param("ssii", $nome, $descricao, $categoria, $horas);
+      
+      if ($stmt->execute()) {
+        $message = 'Serviço adicionado com sucesso!';
+        $message_type = 'success';
+      } else {
+        $message = 'Erro ao adicionar serviço: ' . $stmt->error;
+        $message_type = 'error';
+      }
+      $stmt->close();
+    } else {
+      $message = 'Erro na preparação da consulta: ' . $conn->error;
+      $message_type = 'error';
+    }
+  }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <!-- [Head] start -->
@@ -189,6 +230,16 @@
           <div class="card tbl-card">
             <div class="card-body">
                 <div class="form-group mb-3">
+                    <?php
+                // Display message if exists
+                if (!empty($message)) {
+                  $alert_class = $message_type == 'success' ? 'alert-success' : 'alert-danger';
+                  echo "<div class='alert {$alert_class} alert-dismissible fade show' role='alert'>";
+                  echo htmlspecialchars($message);
+                  echo "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                  echo "</div>";
+                }
+                ?>
               <form action="" method="POST">
                 <label class="form-label">Nome</label>
               <input type="text" class="form-control" name="nome" id="nome" required=""><br>
@@ -198,7 +249,7 @@
               <input type="text" class="form-control" name="categoria" id="categoria" required=""><br>
               <label class="form-label">Horas</label>
               <input type="text" class="form-control" name="horas" id="horas" required="">
-              <button class="btn btn-primary mt-3">Adicionar serviço</button>
+              <button type="submit" class="btn btn-primary mt-3">Adicionar serviço</button>
                 </form>
             </div>
           </div>
