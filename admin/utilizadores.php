@@ -1,3 +1,6 @@
+<?php
+include '../config.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <!-- [Head] start -->
@@ -201,24 +204,28 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td><a href="#" class="text-muted">84564564</a></td>
-                      <td>Camera Lens</td>
-                      <td>40</td>
-                      <td><span class="d-flex align-items-center gap-2"><i
-                            class="fas fa-circle text-danger f-10 m-r-5"></i>Rejected</span>
-                      </td>
-                      <td class="text-end"><a href="#" title="Editar"><i class="ti ti-pencil"></i></a> &nbsp; <a href="#" title="Eliminar"><i class="ti ti-x"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td><a href="#" class="text-muted">84564564</a></td>
-                      <td>Laptop</td>
-                      <td>300</td>
-                      <td><span class="d-flex align-items-center gap-2"><i
-                            class="fas fa-circle text-warning f-10 m-r-5"></i>Pending</span>
-                      </td>
-                       <td class="text-end"><a href="#" title="Editar"><i class="ti ti-pencil"></i></a> &nbsp; <a href="#" title="Eliminar"><i class="ti ti-x"></i></a></td>
-                    </tr>
+                    <?php
+                    $sql = "SELECT id_utilizador, nome,email,perfil,creditos FROM utilizadores order by nome Asc";
+                    $result = $conn->query($sql);
+
+                    if ($result->num_rows > 0) {
+                      // Output data for each row
+                      while ($row = $result->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['perfil']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['creditos']) . "</td>";
+                        echo "<td class='text-end'>";
+                        echo "<a href='editar-utilizador.php?id=" . $row['id_utilizador'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";
+                        echo "<a href='apagar-utilizador.php?id=" . $row['id_utilizador'] . "' class='btn btn-sm btn-icon btn-danger' onclick=\"return confirm('Tem a certeza que deseja eliminar?');\" ><i class='ti ti-trash'></i></a>";
+                        echo "</td>";
+                        echo "</tr>";
+                      }
+                    } else {
+                      echo "<tr><td colspan='3' class='text-center'>Nenhum utilizador encontrado</td></tr>";
+                    }
+                    ?>
   
        
      

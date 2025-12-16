@@ -1,3 +1,6 @@
+<?php
+include '../config.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <!-- [Head] start -->
@@ -200,20 +203,28 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td><a href="#" class="text-muted">84564564</a></td>
-                      <td>Camera Lens</td>
-                      <td>40</td>
-                      <td>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td><a href="#" class="text-muted">84564564</a></td>
-                      <td>Laptop</td>
-                      <td>300</td>
-                      <td>
-                      </td>
-                    </tr>
+           <?php
+                    $sql = "SELECT id_servico, nome, horas, categoria FROM servicos order by nome ASC";
+                    $result = $conn->query($sql);
+
+                    if ($result->num_rows > 0) {
+                      // Output data for each row
+                      while ($row = $result->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['categoria']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['horas']) . "</td>";
+                        echo "<td class='text-end'>";
+                        echo "<a href='editar-servico.php?id=" . $row['id_servico'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";
+                        echo "<a href='apagar-servico.php?id=" . $row['id_servico'] . "' class='btn btn-sm btn-icon btn-danger' onclick=\"return confirm('Tem a certeza que deseja eliminar?');\" ><i class='ti ti-trash'></i></a>";
+                        echo "</td>";
+                        echo "</tr>";
+                      }
+                    } else {
+                      echo "<tr><td colspan='3' class='text-center'>Nenhum serviço encontrado</td></tr>";
+                    }
+                    ?>
+                  
   
        
      

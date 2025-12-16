@@ -1,5 +1,41 @@
 <?php
 include '../config.php';
+
+// Initialize message variables
+$message = '';
+$message_type = '';
+
+// Check if form is submitted
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+  // Get form data
+  $nome = isset($_POST['nome']) ? trim($_POST['nome']) : '';
+
+  // Validate input
+  if (empty($nome)) {
+    $message = 'Por favor, preencha o campo nome.';
+    $message_type = 'error';
+  } else {
+    // Prepare and execute insert query
+    $sql = "INSERT INTO categorias (nome) VALUES (?)";
+    $stmt = $conn->prepare($sql);
+    
+    if ($stmt) {
+      $stmt->bind_param("s", $nome);
+      
+      if ($stmt->execute()) {
+        $message = 'Categoria adicionada com sucesso!';
+        $message_type = 'success';
+      } else {
+        $message = 'Erro ao adicionar categoria: ' . $stmt->error;
+        $message_type = 'error';
+      }
+      $stmt->close();
+    } else {
+      $message = 'Erro na preparação da consulta: ' . $conn->error;
+      $message_type = 'error';
+    }
+  }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -192,10 +228,20 @@ include '../config.php';
             <div class="card-body">
               <div class="form-group mb-3">
                 <h5 class="mb-3">Adicionar nova categoria</h5>
+                <?php
+                // Display message if exists
+                if (!empty($message)) {
+                  $alert_class = $message_type == 'success' ? 'alert-success' : 'alert-danger';
+                  echo "<div class='alert {$alert_class} alert-dismissible fade show' role='alert'>";
+                  echo htmlspecialchars($message);
+                  echo "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                  echo "</div>";
+                }
+                ?>
               <form action="" method="POST">
                 <label class="form-label">Nome</label>
-              <input type="text" class="form-control" name="nome" id="nome" required="">
-              <button class="btn btn-primary mt-3">Adicionar categoria</button>
+              <input type="text" class="form-control" name="nome" id="nome" value="<?php echo isset($_POST['nome']) && $message_type !== 'success' ? htmlspecialchars($_POST['nome']) : ''; ?>" required="">
+              <button type="submit" class="btn btn-primary mt-3">Adicionar categoria</button>
               </form>
             </div>
             </div>
@@ -211,7 +257,6 @@ include '../config.php';
                 <table class="table table-hover table-borderless mb-0">
                   <thead>
                     <tr>
-                      <th>ID</th>
                       <th>NOME</th>
                       <th class="text-end">AÇÕES</th>
                     </tr>
@@ -219,14 +264,13 @@ include '../config.php';
                   <tbody>
                     <?php
                     // Fetch all categories from database
-                    $sql = "SELECT id_categoria, nome FROM categorias";
+                    $sql = "SELECT id_categoria, nome FROM categorias order by nome ASC";
                     $result = $conn->query($sql);
 
                     if ($result->num_rows > 0) {
                       // Output data for each row
                       while ($row = $result->fetch_assoc()) {
                         echo "<tr>";
-                        echo "<td><a href='#' class='text-muted'>" . htmlspecialchars($row['id_categoria']) . "</a></td>";
                         echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
                         echo "<td class='text-end'>";
                         echo "<a href='editar-categoria.php?id=" . $row['id_categoria'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";
