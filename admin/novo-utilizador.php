@@ -23,7 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt = $conn->prepare($sql);
     
     if ($stmt) {
-      $stmt->bind_param("sssisi", $nome, $email, $password, $creditos, $foto, $perfil);
+      $password_hashed = md5($password);
+      $stmt->bind_param("sssisi", $nome, $email, $password_hashed, $creditos, $foto, $perfil);
       
       if ($stmt->execute()) {
         $message = 'Utilizador adicionado com sucesso!';
