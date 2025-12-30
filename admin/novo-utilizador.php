@@ -248,7 +248,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               <label class="form-label">Email</label>
               <input type="text" class="form-control" name="email" id="email" required=""><br>
               <label class="form-label">Password</label>
-              <input type="text" class="form-control" name="password" id="password" required=""><br>
+              <div class="input-group mb-3">
+                <input type="password" class="form-control" name="password" id="password" required="">
+                <button type="button" class="btn btn-outline-secondary" id="togglePassword" aria-label="Mostrar/ocultar password">
+                  <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                </button>
+              </div>
               <label class="form-label">Foto</label>
               <input type="text" class="form-control" name="foto" id="foto" required=""><br>
               <label class="form-label">Créditos</label>
@@ -273,6 +278,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       <script src="../assets/js/plugins/bootstrap.min.js"></script>
       <script src="../assets/js/pcoded.js"></script>
       <script src="../assets/js/plugins/feather.min.js"></script>
+
+      <script>
+        // Toggle password visibility
+        (function(){
+          const btn = document.getElementById('togglePassword');
+          const input = document.getElementById('password');
+          const icon = document.getElementById('togglePasswordIcon');
+          if (btn && input && icon) {
+            btn.addEventListener('click', function(){
+              if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+              } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+              }
+            });
+          }
+        })();
+      </script>
 
 </body>
 <!-- [Body] end -->
