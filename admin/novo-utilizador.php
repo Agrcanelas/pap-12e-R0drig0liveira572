@@ -10,13 +10,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $email = isset($_POST['email']) ? trim($_POST['email']) : '';
   $password = isset($_POST['password']) ? trim($_POST['password']) : '';
   $creditos = isset($_POST['creditos']) ? (int)$_POST['creditos'] : 0;
-  $foto = isset($_POST['foto']) ? trim($_POST['foto']) : '';
+  // Handle uploaded photo (optional)
+  $foto = '';
+  $file_error = false;
+  if (isset($_FILES['foto']) && $_FILES['foto']['error'] !== UPLOAD_ERR_NO_FILE) {
+    $file = $_FILES['foto'];
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+      $message = 'Erro no upload do ficheiro.';
+      $message_type = 'error';
+      $file_error = true;
+    } else {
+      $allowed = array('jpg','jpeg','png','gif','bmp');
+      $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+      if (!in_array($ext, $allowed)) {
+        $message = 'Tipo de ficheiro não permitido. Utilize jpg, jpeg, png, gif ou bmp.';
+        $message_type = 'error';
+        $file_error = true;
+      } else {
+        $upload_dir = __DIR__ . '/../uploads/';
+        if (!is_dir($upload_dir)) {
+          mkdir($upload_dir, 0755, true);
+        }
+        $new_name = md5(date('Y-m-d H:i:s') . microtime(true)) . '.' . $ext;
+        $destination = $upload_dir . $new_name;
+        if (move_uploaded_file($file['tmp_name'], $destination)) {
+          $foto = 'uploads/' . $new_name; // path saved in DB
+        } else {
+          $message = 'Não foi possível mover o ficheiro enviado.';
+          $message_type = 'error';
+          $file_error = true;
+        }
+      }
+    }
+  }
+
   $perfil = isset($_POST['perfil']) ? trim($_POST['perfil']) : '';
 
   // Validate input
   if (empty($nome)) {
     $message = 'Por favor, preencha o campo nome.';
     $message_type = 'error';
+  } elseif (!empty($file_error)) {
+    // file_error already set and $message contains the error
   } else {
     // Prepare and execute insert query
     $sql = "INSERT INTO utilizadores (nome, email, password, creditos, foto, perfil) VALUES (?,?,?,?,?,?)";
@@ -243,7 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                   echo "</div>";
                 }
                 ?>
-              <form action="" method="POST">
+              <form action="" method="POST" enctype="multipart/form-data">
                 <label class="form-label">Nome</label>
               <input type="text" class="form-control" name="nome" id="nome" required=""><br>
               <label class="form-label">Email</label>
@@ -256,7 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </button>
               </div>
               <label class="form-label">Foto</label>
-              <input type="text" class="form-control" name="foto" id="foto" required=""><br>
+              <input type="file" class="form-control" name="foto" id="foto" accept=".jpg,.jpeg,.png,.gif,.bmp"><br>
               <label class="form-label">Créditos</label>
               <input type="text" class="form-control" name="creditos" id="creditos" required=""><br>
               <label class="form-label">Perfil</label>
