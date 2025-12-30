@@ -293,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               <label class="form-label">Foto</label>
               <input type="file" class="form-control" name="foto" id="foto" accept=".jpg,.jpeg,.png,.gif,.bmp"><br>
               <label class="form-label">Créditos</label>
-              <input type="text" class="form-control" name="creditos" id="creditos" required=""><br>
+              <input type="text" class="form-control" name="creditos" id="creditos" value="20" required=""><br>
               <label class="form-label">Perfil</label>
               <label class="form-label">Perfil</label>
               <select class="form-control" name="perfil" id="perfil" required="">
