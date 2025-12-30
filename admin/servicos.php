@@ -204,7 +204,10 @@ include '../config.php';
                   </thead>
                   <tbody>
            <?php
-                    $sql = "SELECT id_servico, nome, horas, categoria FROM servicos order by nome ASC";
+                    $sql = "SELECT s.id_servico, s.nome, s.horas, c.nome AS categoria_nome 
+                            FROM servicos s 
+                            LEFT JOIN categorias c ON s.categoria = c.id_categoria 
+                            ORDER BY s.nome ASC";
                     $result = $conn->query($sql);
 
                     if ($result->num_rows > 0) {
@@ -212,7 +215,7 @@ include '../config.php';
                       while ($row = $result->fetch_assoc()) {
                         echo "<tr>";
                         echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['categoria']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['categoria_nome'] ?? 'N/A') . "</td>";
                         echo "<td>" . htmlspecialchars($row['horas']) . "</td>";
                         echo "<td class='text-end'>";
                         echo "<a href='editar-servico.php?id=" . $row['id_servico'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";
