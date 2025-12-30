@@ -254,7 +254,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               <label class="form-label">Créditos</label>
               <input type="text" class="form-control" name="creditos" id="creditos" required=""><br>
               <label class="form-label">Perfil</label>
-              <input type="text" class="form-control" name="perfil" id="perfil" required="">
+              <label class="form-label">Perfil</label>
+              <select class="form-control" name="perfil" id="perfil" required="">
+                <option value="">Selecione um perfil</option>
+                <option value="0">Subscritor</option>
+                <option value="1">Admin</option>
+              </select>
               <button class="btn btn-primary mt-3">Adicionar utilizador</button>
                 </form>
           </div>
