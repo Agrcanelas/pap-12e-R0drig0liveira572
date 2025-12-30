@@ -246,7 +246,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               <label class="form-label">Descrição</label>
               <input type="text" class="form-control" name="descricao" id="descricao" required=""><br>
               <label class="form-label">Categoria</label>
-              <input type="text" class="form-control" name="categoria" id="categoria" required=""><br>
+              <select class="form-control" name="categoria" id="categoria" required="">
+                <option value="">Selecione uma categoria</option>
+                <?php
+                // Fetch all categories from database
+                $sql_cat = "SELECT id_categoria, nome FROM categorias ORDER BY nome ASC";
+                $result_cat = $conn->query($sql_cat);
+
+                if ($result_cat->num_rows > 0) {
+                  while ($row_cat = $result_cat->fetch_assoc()) {
+                    echo "<option value='" . htmlspecialchars($row_cat['id_categoria']) . "'>" . htmlspecialchars($row_cat['nome']) . "</option>";
+                  }
+                }
+                ?>
+              </select><br>
               <label class="form-label">Horas</label>
               <input type="text" class="form-control" name="horas" id="horas" required="">
               <button type="submit" class="btn btn-primary mt-3">Adicionar serviço</button>
