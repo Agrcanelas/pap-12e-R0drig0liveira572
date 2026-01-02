@@ -208,7 +208,6 @@ include '../config.php';
                     // Fetch transactions and display
                     $sql = "SELECT 
                       t.id_transacao, 
-                      t.id_prestador, 
                       t.id_receptor, 
                       t.id_servico, 
                       t.horas_trocadas, 
@@ -218,9 +217,9 @@ include '../config.php';
                       u_receptor.nome AS nome_receptor,
                       s.nome AS nome_servico
                     FROM transacoes t
-                    LEFT JOIN utilizadores u_prestador ON t.id_prestador = u_prestador.id_utilizador
-                    LEFT JOIN utilizadores u_receptor ON t.id_receptor = u_receptor.id_utilizador
                     LEFT JOIN servicos s ON t.id_servico = s.id_servico
+                    LEFT JOIN utilizadores u_prestador ON s.id_prestador = u_prestador.id_utilizador
+                    LEFT JOIN utilizadores u_receptor ON t.id_receptor = u_receptor.id_utilizador
                     ORDER BY t.data DESC";
                     $result = $conn->query($sql);
 
