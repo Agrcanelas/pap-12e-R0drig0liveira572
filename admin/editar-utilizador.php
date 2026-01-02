@@ -20,15 +20,52 @@ if ($id > 0) {
     $nome = isset($_POST['nome']) ? trim($_POST['nome']) : '';
     $email = isset($_POST['email']) ? trim($_POST['email']) : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
-    $foto = isset($_POST['foto']) ? trim($_POST['foto']) : '';
+    $foto = ''; // Will be set if file uploaded, otherwise keep current
+    $file_error = false;
+    
+    // Handle uploaded photo (optional)
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] !== UPLOAD_ERR_NO_FILE) {
+      $file = $_FILES['foto'];
+      if ($file['error'] !== UPLOAD_ERR_OK) {
+        $message = 'Erro no upload do ficheiro.';
+        $message_type = 'error';
+        $file_error = true;
+      } else {
+        $allowed = array('jpg','jpeg','png','gif','bmp');
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowed)) {
+          $message = 'Tipo de ficheiro não permitido. Utilize jpg, jpeg, png, gif ou bmp.';
+          $message_type = 'error';
+          $file_error = true;
+        } else {
+          $upload_dir = __DIR__ . '/../uploads/';
+          if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+          }
+          $new_name = md5(date('Y-m-d H:i:s') . microtime(true)) . '.' . $ext;
+          $destination = $upload_dir . $new_name;
+          if (move_uploaded_file($file['tmp_name'], $destination)) {
+            $foto = 'uploads/' . $new_name; // path saved in DB
+          } else {
+            $message = 'Não foi possível mover o ficheiro enviado.';
+            $message_type = 'error';
+            $file_error = true;
+          }
+        }
+      }
+    }
+    
     $creditos = isset($_POST['creditos']) ? (int) $_POST['creditos'] : 0;
     $perfil = isset($_POST['perfil']) ? (int) $_POST['perfil'] : 0;
 
     if ($nome === '' || $email === '') {
       $message = 'Por favor preencha os campos nome e email.';
       $message_type = 'error';
+    } elseif (!empty($file_error)) {
+      // file_error already set and $message contains the error
     } else {
-      if ($password !== '') {
+      if ($password !== '' && !empty($foto)) {
+        // Update with new password and new photo
         $password_hashed = md5($password);
         $sql = "UPDATE utilizadores SET nome = ?, email = ?, password = ?, foto = ?, creditos = ?, perfil = ? WHERE id_utilizador = ?";
         $stmt = $conn->prepare($sql);
@@ -46,12 +83,49 @@ if ($id > 0) {
           $message = 'Erro na preparação da consulta: ' . $conn->error;
           $message_type = 'error';
         }
-      } else {
-        // Update without changing password
+      } elseif ($password !== '' && empty($foto)) {
+        // Update with new password but keep current photo
+        $password_hashed = md5($password);
+        $sql = "UPDATE utilizadores SET nome = ?, email = ?, password = ?, creditos = ?, perfil = ? WHERE id_utilizador = ?";
+        $stmt = $conn->prepare($sql);
+        if ($stmt) {
+          $stmt->bind_param('sssiii', $nome, $email, $password_hashed, $creditos, $perfil, $id);
+          if ($stmt->execute()) {
+            $message = 'Utilizador actualizado com sucesso.';
+            $message_type = 'success';
+          } else {
+            $message = 'Erro ao actualizar utilizador: ' . $stmt->error;
+            $message_type = 'error';
+          }
+          $stmt->close();
+        } else {
+          $message = 'Erro na preparação da consulta: ' . $conn->error;
+          $message_type = 'error';
+        }
+      } elseif (empty($password) && !empty($foto)) {
+        // Update with new photo but keep current password
         $sql = "UPDATE utilizadores SET nome = ?, email = ?, foto = ?, creditos = ?, perfil = ? WHERE id_utilizador = ?";
         $stmt = $conn->prepare($sql);
         if ($stmt) {
           $stmt->bind_param('sssiii', $nome, $email, $foto, $creditos, $perfil, $id);
+          if ($stmt->execute()) {
+            $message = 'Utilizador actualizado com sucesso.';
+            $message_type = 'success';
+          } else {
+            $message = 'Erro ao actualizar utilizador: ' . $stmt->error;
+            $message_type = 'error';
+          }
+          $stmt->close();
+        } else {
+          $message = 'Erro na preparação da consulta: ' . $conn->error;
+          $message_type = 'error';
+        }
+      } else {
+        // Update without changing password or photo
+        $sql = "UPDATE utilizadores SET nome = ?, email = ?, creditos = ?, perfil = ? WHERE id_utilizador = ?";
+        $stmt = $conn->prepare($sql);
+        if ($stmt) {
+          $stmt->bind_param('ssiii', $nome, $email, $creditos, $perfil, $id);
           if ($stmt->execute()) {
             $message = 'Utilizador actualizado com sucesso.';
             $message_type = 'success';
@@ -286,7 +360,7 @@ if ($id > 0) {
                   echo "</div>";
                 }
                 ?>
-                  <form action="" method="POST">
+                  <form action="" method="POST" enctype="multipart/form-data">
                     <label class="form-label">Nome</label>
               <input type="text" class="form-control" name="nome" id="nome" value="<?php echo htmlspecialchars($current_nome); ?>" required=""><br>
               <label class="form-label">Email</label>
@@ -299,7 +373,13 @@ if ($id > 0) {
                 </button>
               </div>
               <label class="form-label">Foto</label>
-              <input type="text" class="form-control" name="foto" id="foto" value="<?php echo htmlspecialchars($current_foto); ?>"><br>
+              <?php
+              if (!empty($current_foto)) {
+                echo "<div class='mb-2'><img src='../" . htmlspecialchars($current_foto) . "' alt='Foto de perfil' style='max-width: 200px; max-height: 200px;'></div>";
+              }
+              ?>
+              <input type="file" class="form-control" name="foto" id="foto" accept=".jpg,.jpeg,.png,.gif,.bmp"><br>
+              <small class="text-muted">Formatos permitidos: jpg, jpeg, png, gif, bmp</small><br>
               <label class="form-label">Créditos</label>
               <input type="number" class="form-control" name="creditos" id="creditos" value="<?php echo htmlspecialchars($current_creditos); ?>"><br>
               <label class="form-label">Perfil</label>
