@@ -20,15 +20,16 @@ if ($id > 0) {
     $descricao = isset($_POST['descricao']) ? trim($_POST['descricao']) : '';
     $categoria = isset($_POST['categoria']) ? (int) $_POST['categoria'] : 0;
     $horas = isset($_POST['horas']) ? (int) $_POST['horas'] : 0;
+    $prestador = isset($_POST['prestador']) ? (int) $_POST['prestador'] : 0;
 
     if ($nome === '') {
       $message = 'Por favor preencha o nome do serviço.';
       $message_type = 'error';
     } else {
-      $sql = "UPDATE servicos SET nome = ?, descricao = ?, categoria = ?, horas = ? WHERE id_servico = ?";
+      $sql = "UPDATE servicos SET nome = ?, descricao = ?, categoria = ?, horas = ?, id_prestador = ? WHERE id_servico = ?";
       $stmt = $conn->prepare($sql);
       if ($stmt) {
-        $stmt->bind_param('ssiii', $nome, $descricao, $categoria, $horas, $id);
+        $stmt->bind_param('ssiiii', $nome, $descricao, $categoria, $horas, $prestador, $id);
         if ($stmt->execute()) {
           $message = 'Serviço atualizado com sucesso.';
           $message_type = 'success';
@@ -45,12 +46,12 @@ if ($id > 0) {
   }
 
   // Fetch current service values (fresh from DB after possible update)
-  $sql = "SELECT nome, descricao, categoria, horas FROM servicos WHERE id_servico = ? LIMIT 1";
+  $sql = "SELECT nome, descricao, categoria, horas, id_prestador FROM servicos WHERE id_servico = ? LIMIT 1";
   $stmt = $conn->prepare($sql);
   if ($stmt) {
     $stmt->bind_param('i', $id);
     if ($stmt->execute()) {
-      $stmt->bind_result($current_nome, $current_descricao, $current_categoria, $current_horas);
+      $stmt->bind_result($current_nome, $current_descricao, $current_categoria, $current_horas, $current_prestador);
       $stmt->fetch();
     }
     $stmt->close();
@@ -285,6 +286,22 @@ if ($id > 0) {
                   </select><br>
                   <label class="form-label">Horas</label>
                   <input type="text" class="form-control" name="horas" id="horas" value="<?php echo htmlspecialchars($current_horas); ?>" required="">
+                  <label class="form-label">Prestador</label>
+                  <select class="form-control" name="prestador" id="prestador" required="">
+                    <option value="">Selecione um prestador</option>
+                    <?php
+                    // Fetch all users from database
+                    $sql_prest = "SELECT id_utilizador, nome FROM utilizadores ORDER BY nome ASC";
+                    $result_prest = $conn->query($sql_prest);
+
+                    if ($result_prest->num_rows > 0) {
+                      while ($row_prest = $result_prest->fetch_assoc()) {
+                        $sel = ($row_prest['id_utilizador'] == $current_prestador) ? ' selected' : '';
+                        echo "<option value='" . htmlspecialchars($row_prest['id_utilizador']) . "'" . $sel . ">" . htmlspecialchars($row_prest['nome']) . "</option>";
+                      }
+                    }
+                    ?>
+                  </select><br>
                   <button type="submit" class="btn btn-primary mt-3">Gravar</button>
                   <a href="servicos.php" class="btn btn-secondary mt-3 ms-2">Cancelar</a>
                     </form>
