@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 02-Jan-2026 às 16:24
+-- Tempo de geração: 02-Jan-2026 às 17:16
 -- Versão do servidor: 10.4.32-MariaDB
 -- versão do PHP: 8.2.12
 
@@ -63,9 +63,8 @@ CREATE TABLE `servicos` (
 --
 
 INSERT INTO `servicos` (`id_servico`, `nome`, `descricao`, `categoria`, `horas`, `id_prestador`, `data`) VALUES
-(1, 'Jardinagem', 'cortar mato', 1, 10, 1, '2025-12-12 15:54:36'),
+(1, 'Jardinagem', 'cortar mato', 1, 10, 4, '2025-12-12 15:54:36'),
 (2, 'Cozinha', 'lavar pratos', 3, 10, 2, '2025-12-12 16:18:25'),
-(3, 'Cozinha', 'lavar pratos', 4, 10, 3, '2025-12-30 13:30:49'),
 (5, 'limpar cozinha', 'asasas', 4, 1, 3, '2026-01-02 15:06:05');
 
 -- --------------------------------------------------------
@@ -88,7 +87,7 @@ CREATE TABLE `transacoes` (
 --
 
 INSERT INTO `transacoes` (`id_transacao`, `id_receptor`, `id_servico`, `horas_trocadas`, `estado`, `data`) VALUES
-(1, 2, 1, 4, 'concluido', '2025-12-30 13:47:25');
+(1, 2, 1, 4, 'a decorrer', '2025-12-30 13:47:25');
 
 -- --------------------------------------------------------
 
@@ -112,10 +111,9 @@ CREATE TABLE `utilizadores` (
 --
 
 INSERT INTO `utilizadores` (`id_utilizador`, `nome`, `email`, `password`, `foto`, `creditos`, `perfil`, `data`) VALUES
-(1, 'Martim', 'a10970@agrcanelas.com', 'greyert', '', 80, 1, '2025-12-12 16:03:02'),
 (2, 'Rodrigo', 'rodrigomiguelsolivieira@gmail.com', 'hrhtryrty', 'ere', 12, 0, '2025-12-12 16:36:57'),
-(3, 'Hélder', 'helderpso@gmail.com', '06afa6c8b54d3cc80d269379d8b6a078', '', 159, 0, '2025-12-30 14:26:13'),
-(4, 'jOSÉ', 'jose@lol.com', '9eb9a779166a1d7c9312fd91ba1d2def', 'uploads/5d766d2b132e9780c4c5a45a45044a75.jpg', 12, 0, '2025-12-30 17:54:38');
+(3, 'Hélder', 'helderpso@gmail.com', '06afa6c8b54d3cc80d269379d8b6a078', '', 159, 1, '2025-12-30 14:26:13'),
+(4, 'José', 'jose@lol.com', '06afa6c8b54d3cc80d269379d8b6a078', 'uploads/5d766d2b132e9780c4c5a45a45044a75.jpg', 12, 1, '2025-12-30 17:54:38');
 
 --
 -- Índices para tabelas despejadas
