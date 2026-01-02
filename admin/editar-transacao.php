@@ -20,20 +20,19 @@ $current_nome_servico = '';
 if ($id > 0) {
   // Handle POST update
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_prestador = isset($_POST['id_prestador']) ? (int) $_POST['id_prestador'] : 0;
     $id_receptor = isset($_POST['id_receptor']) ? (int) $_POST['id_receptor'] : 0;
     $id_servico = isset($_POST['id_servico']) ? (int) $_POST['id_servico'] : 0;
     $horas_trocadas = isset($_POST['horas_trocadas']) ? (float) $_POST['horas_trocadas'] : 0;
     $estado = isset($_POST['estado']) ? trim($_POST['estado']) : '';
 
-    if ($id_prestador <= 0 || $id_receptor <= 0 || $id_servico <= 0 || $horas_trocadas <= 0) {
+    if ($id_receptor <= 0 || $id_servico <= 0 || $horas_trocadas <= 0) {
       $message = 'Por favor preencha todos os campos corretamente.';
       $message_type = 'error';
     } else {
-      $sql = "UPDATE transacoes SET id_prestador = ?, id_receptor = ?, id_servico = ?, horas_trocadas = ?, estado = ? WHERE id_transacao = ?";
+      $sql = "UPDATE transacoes SET id_receptor = ?, id_servico = ?, horas_trocadas = ?, estado = ? WHERE id_transacao = ?";
       $stmt = $conn->prepare($sql);
       if ($stmt) {
-        $stmt->bind_param('iiidsi', $id_prestador, $id_receptor, $id_servico, $horas_trocadas, $estado, $id);
+        $stmt->bind_param('iidsi', $id_receptor, $id_servico, $horas_trocadas, $estado, $id);
         if ($stmt->execute()) {
           $message = 'Transação actualizada com sucesso.';
           $message_type = 'success';
@@ -50,18 +49,32 @@ if ($id > 0) {
   }
 
   // Fetch current transaction values
-  $sql = "SELECT id_prestador, id_receptor, id_servico, horas_trocadas, estado FROM transacoes WHERE id_transacao = ? LIMIT 1";
+  $sql = "SELECT id_receptor, id_servico, horas_trocadas, estado FROM transacoes WHERE id_transacao = ? LIMIT 1";
   $stmt = $conn->prepare($sql);
   if ($stmt) {
     $stmt->bind_param('i', $id);
     if ($stmt->execute()) {
-      $stmt->bind_result($current_id_prestador, $current_id_receptor, $current_id_servico, $current_horas_trocadas, $current_estado);
+      $stmt->bind_result($current_id_receptor, $current_id_servico, $current_horas_trocadas, $current_estado);
       $stmt->fetch();
     }
     $stmt->close();
   }
 
-  // Fetch prestador name
+  // Fetch id_prestador from servicos table using id_servico
+  if ($current_id_servico > 0) {
+    $sql = "SELECT id_prestador FROM servicos WHERE id_servico = ? LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    if ($stmt) {
+      $stmt->bind_param('i', $current_id_servico);
+      if ($stmt->execute()) {
+        $stmt->bind_result($current_id_prestador);
+        $stmt->fetch();
+      }
+      $stmt->close();
+    }
+  }
+
+  // Fetch prestador name using id_prestador from servicos
   if ($current_id_prestador > 0) {
     $sql = "SELECT nome FROM utilizadores WHERE id_utilizador = ? LIMIT 1";
     $stmt = $conn->prepare($sql);
@@ -312,19 +325,7 @@ if ($id > 0) {
                 ?>
               <form action="" method="POST">
                 <label class="form-label">Prestador</label>
-                <select class="form-control" name="id_prestador" id="id_prestador" required="">
-                  <option value="">Selecione um prestador</option>
-                  <?php
-                  $sql = "SELECT id_utilizador, nome FROM utilizadores ORDER BY nome ASC";
-                  $result = $conn->query($sql);
-                  if ($result) {
-                    while ($row = $result->fetch_assoc()) {
-                      $selected = ($row['id_utilizador'] == $current_id_prestador) ? 'selected' : '';
-                      echo "<option value='" . htmlspecialchars($row['id_utilizador']) . "' $selected>" . htmlspecialchars($row['nome']) . "</option>";
-                    }
-                  }
-                  ?>
-                </select><br>
+                <input type="text" class="form-control" value="<?php echo htmlspecialchars($current_nome_prestador ?? 'N/A'); ?>" disabled><br>
                 <label class="form-label">Receptor</label>
                 <select class="form-control" name="id_receptor" id="id_receptor" required="">
                   <option value="">Selecione um receptor</option>
