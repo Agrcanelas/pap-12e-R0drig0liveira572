@@ -31,12 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         if ($stmt->fetch()) {
           // User found, check perfil
-          if ($perfil == 1) {
+          if ($perfil == 0) {
             // Admin user, redirect to admin index
             $stmt->close();
             header("Location: ../index.php");
             exit();
-          } elseif ($perfil == 0) {
+          } elseif ($perfil == 1) {
             // Subscriber user, allow login to this page
             $_SESSION['user_id'] = $id_utilizador;
             $_SESSION['user_name'] = $nome;
