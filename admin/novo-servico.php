@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $descricao = isset($_POST['descricao']) ? trim($_POST['descricao']) : '';
   $categoria = isset($_POST['categoria']) ? trim($_POST['categoria']) : ''; 
   $horas = isset($_POST['horas']) ? trim($_POST['horas']) : '';
+  $prestador = isset($_POST['prestador']) ? trim($_POST['prestador']) : '';
 
   // Validate input
   if (empty($nome)) {
@@ -18,11 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $message_type = 'error';
   } else {
     // Prepare and execute insert query
-    $sql = "INSERT INTO servicos (nome, descricao, categoria, horas) VALUES (?,?,?,?)";
+    $sql = "INSERT INTO servicos (nome, descricao, categoria, horas, id_prestador) VALUES (?,?,?,?,?)";
     $stmt = $conn->prepare($sql);
     
     if ($stmt) {
-      $stmt->bind_param("ssii", $nome, $descricao, $categoria, $horas);
+      $stmt->bind_param("ssiii", $nome, $descricao, $categoria, $horas, $prestador);
       
       if ($stmt->execute()) {
         $message = 'Serviço adicionado com sucesso!';
@@ -262,6 +263,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               </select><br>
               <label class="form-label">Horas</label>
               <input type="text" class="form-control" name="horas" id="horas" required="">
+              <label class="form-label">Prestador</label>
+              <select class="form-control" name="prestador" id="prestador" required="">
+                <option value="">Selecione um prestador</option>
+                <?php
+                // Fetch all users from database
+                $sql_prest = "SELECT id_utilizador, nome FROM utilizadores ORDER BY nome ASC";
+                $result_prest = $conn->query($sql_prest);
+
+                if ($result_prest->num_rows > 0) {
+                  while ($row_prest = $result_prest->fetch_assoc()) {
+                    echo "<option value='" . htmlspecialchars($row_prest['id_utilizador']) . "'>" . htmlspecialchars($row_prest['nome']) . "</option>";
+                  }
+                }
+                ?>
+              </select><br>
               <button type="submit" class="btn btn-primary mt-3">Adicionar serviço</button>
                 </form>
             </div>
