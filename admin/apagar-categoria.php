@@ -1,12 +1,66 @@
 <?php
 include '../config.php';
+
+// Messages
+$message = '';
+$message_type = '';
+
+// Get category id from GET
+$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+
+if ($id > 0) {
+  // Check if category is used in servicos table
+  $sql = "SELECT COUNT(*) AS count FROM servicos WHERE categoria = ?";
+  $stmt = $conn->prepare($sql);
+  
+  if ($stmt) {
+    $stmt->bind_param('i', $id);
+    if ($stmt->execute()) {
+      $stmt->bind_result($count);
+      $stmt->fetch();
+      $stmt->close();
+      
+      if ($count > 0) {
+        $message = 'Não é possível eliminar esta categoria porque está a ser utilizada em ' . $count . ' serviço(s).';
+        $message_type = 'error';
+      } else {
+        // Category is not used, proceed with deletion
+        $sql_delete = "DELETE FROM categorias WHERE id_categoria = ?";
+        $stmt_delete = $conn->prepare($sql_delete);
+        
+        if ($stmt_delete) {
+          $stmt_delete->bind_param('i', $id);
+          
+          if ($stmt_delete->execute()) {
+            $message = 'Categoria eliminada com sucesso!';
+            $message_type = 'success';
+          } else {
+            $message = 'Erro ao eliminar categoria: ' . $stmt_delete->error;
+            $message_type = 'error';
+          }
+          $stmt_delete->close();
+        } else {
+          $message = 'Erro na preparação da consulta: ' . $conn->error;
+          $message_type = 'error';
+        }
+      }
+    }
+  } else {
+    $message = 'Erro na preparação da consulta: ' . $conn->error;
+    $message_type = 'error';
+  }
+} else {
+  $message = 'ID de categoria inválido.';
+  $message_type = 'error';
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <!-- [Head] start -->
 
 <head>
-  <title>Serviços | Banco do Tempo</title>
+  <title>Eliminar Categoria | Banco do Tempo</title>
   <!-- [Meta] -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
@@ -177,8 +231,7 @@ include '../config.php';
           <div class="row align-items-center">
             <div class="col-md-12">
               <div class="page-header-title">
-                <h2 class="mb-0">Serviços</h2>
-                <a href="novo-servico.php"><button class="btn btn-primary mt-3">Adicionar serviço</button></a>
+                <h2 class="mb-0">Eliminar Categoria</h2>
               </div>
             </div>
           </div>
@@ -192,48 +245,18 @@ include '../config.php';
         <div class="col-md-12 col-xl-12">
           <div class="card tbl-card">
             <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-hover table-borderless mb-0">
-                  <thead>
-                    <tr>
-                      <th>NOME</th>
-                      <th>CATEGORIA</th>
-                      <th>HORAS</th>
-                      <th class="text-end">AÇÕES</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-           <?php
-                    $sql = "SELECT s.id_servico, s.nome, s.horas, c.nome AS categoria_nome 
-                            FROM servicos s 
-                            LEFT JOIN categorias c ON s.categoria = c.id_categoria 
-                            ORDER BY s.nome ASC";
-                    $result = $conn->query($sql);
-
-                    if ($result->num_rows > 0) {
-                      // Output data for each row
-                      while ($row = $result->fetch_assoc()) {
-                        echo "<tr>";
-                        echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['categoria_nome'] ?? 'N/A') . "</td>";
-                        echo "<td>" . htmlspecialchars($row['horas']) . "</td>";
-                        echo "<td class='text-end'>";
-                        echo "<a href='editar-servico.php?id=" . $row['id_servico'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";
-                        echo "<a href='apagar-servico.php?id=" . $row['id_servico'] . "' class='btn btn-sm btn-icon btn-danger' onclick=\"return confirm('Tem a certeza que deseja eliminar?');\" ><i class='ti ti-trash'></i></a>";
-                        echo "</td>";
-                        echo "</tr>";
-                      }
-                    } else {
-                      echo "<tr><td colspan='3' class='text-center'>Nenhum serviço encontrado</td></tr>";
-                    }
-                    ?>
-                  
-  
-       
-     
-         
-                  </tbody>
-                </table>
+              <div class="form-group mb-3">
+                <?php
+                // Display message if exists
+                if (!empty($message)) {
+                  $alert_class = $message_type == 'success' ? 'alert-success' : 'alert-danger';
+                  echo "<div class='alert {$alert_class} alert-dismissible fade show' role='alert'>";
+                  echo htmlspecialchars($message);
+                  echo "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                  echo "</div>";
+                }
+                ?>
+                <a href="categorias.php" class="btn btn-secondary mt-3">Voltar</a>
               </div>
             </div>
           </div>

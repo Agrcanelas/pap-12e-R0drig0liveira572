@@ -1,12 +1,73 @@
 <?php
 include '../config.php';
+
+// Messages
+$message = '';
+$message_type = '';
+
+// Get service id from GET
+$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+
+$current_nome = '';
+$current_descricao = '';
+$current_categoria = '';
+$current_horas = '';
+
+if ($id > 0) {
+  // Handle POST update
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nome = isset($_POST['nome']) ? trim($_POST['nome']) : '';
+    $descricao = isset($_POST['descricao']) ? trim($_POST['descricao']) : '';
+    $categoria = isset($_POST['categoria']) ? (int) $_POST['categoria'] : 0;
+    $horas = isset($_POST['horas']) ? (int) $_POST['horas'] : 0;
+    $prestador = isset($_POST['prestador']) ? (int) $_POST['prestador'] : 0;
+
+    if ($nome === '') {
+      $message = 'Por favor preencha o nome do serviço.';
+      $message_type = 'error';
+    } else {
+      $sql = "UPDATE servicos SET nome = ?, descricao = ?, categoria = ?, horas = ?, id_prestador = ? WHERE id_servico = ?";
+      $stmt = $conn->prepare($sql);
+      if ($stmt) {
+        $stmt->bind_param('ssiiii', $nome, $descricao, $categoria, $horas, $prestador, $id);
+        if ($stmt->execute()) {
+          $message = 'Serviço atualizado com sucesso.';
+          $message_type = 'success';
+        } else {
+          $message = 'Erro ao atualizar serviço: ' . $stmt->error;
+          $message_type = 'error';
+        }
+        $stmt->close();
+      } else {
+        $message = 'Erro na preparação da consulta: ' . $conn->error;
+        $message_type = 'error';
+      }
+    }
+  }
+
+  // Fetch current service values (fresh from DB after possible update)
+  $sql = "SELECT nome, descricao, categoria, horas, id_prestador FROM servicos WHERE id_servico = ? LIMIT 1";
+  $stmt = $conn->prepare($sql);
+  if ($stmt) {
+    $stmt->bind_param('i', $id);
+    if ($stmt->execute()) {
+      $stmt->bind_result($current_nome, $current_descricao, $current_categoria, $current_horas, $current_prestador);
+      $stmt->fetch();
+    }
+    $stmt->close();
+  }
+} else {
+  $message = 'ID de serviço inválido.';
+  $message_type = 'error';
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <!-- [Head] start -->
 
 <head>
-  <title>Serviços | Banco do Tempo</title>
+  <title>Editar Serviço | Banco do Tempo</title>
   <!-- [Meta] -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
@@ -177,8 +238,7 @@ include '../config.php';
           <div class="row align-items-center">
             <div class="col-md-12">
               <div class="page-header-title">
-                <h2 class="mb-0">Serviços</h2>
-                <a href="novo-servico.php"><button class="btn btn-primary mt-3">Adicionar serviço</button></a>
+                <h2 class="mb-0">Editar Serviço</h2>
               </div>
             </div>
           </div>
@@ -192,49 +252,59 @@ include '../config.php';
         <div class="col-md-12 col-xl-12">
           <div class="card tbl-card">
             <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-hover table-borderless mb-0">
-                  <thead>
-                    <tr>
-                      <th>NOME</th>
-                      <th>CATEGORIA</th>
-                      <th>HORAS</th>
-                      <th class="text-end">AÇÕES</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-           <?php
-                    $sql = "SELECT s.id_servico, s.nome, s.horas, c.nome AS categoria_nome 
-                            FROM servicos s 
-                            LEFT JOIN categorias c ON s.categoria = c.id_categoria 
-                            ORDER BY s.nome ASC";
-                    $result = $conn->query($sql);
+                <div class="form-group mb-3">
+                    <?php
+                // Display message if exists
+                if (!empty($message)) {
+                  $alert_class = $message_type == 'success' ? 'alert-success' : 'alert-danger';
+                  echo "<div class='alert {$alert_class} alert-dismissible fade show' role='alert'>";
+                  echo htmlspecialchars($message);
+                  echo "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                  echo "</div>";
+                }
+                ?>
+                  <form action="" method="POST">
+                    <label class="form-label">Nome</label>
+                  <input type="text" class="form-control" name="nome" id="nome" value="<?php echo htmlspecialchars($current_nome); ?>" required=""><br>
+                  <label class="form-label">Descrição</label>
+                  <input type="text" class="form-control" name="descricao" id="descricao" value="<?php echo htmlspecialchars($current_descricao); ?>" required=""><br>
+                  <label class="form-label">Categoria</label>
+                  <select class="form-control" name="categoria" id="categoria" required="">
+                    <option value="">Selecione uma categoria</option>
+                    <?php
+                    // Fetch all categories from database
+                    $sql_cat = "SELECT id_categoria, nome FROM categorias ORDER BY nome ASC";
+                    $result_cat = $conn->query($sql_cat);
 
-                    if ($result->num_rows > 0) {
-                      // Output data for each row
-                      while ($row = $result->fetch_assoc()) {
-                        echo "<tr>";
-                        echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['categoria_nome'] ?? 'N/A') . "</td>";
-                        echo "<td>" . htmlspecialchars($row['horas']) . "</td>";
-                        echo "<td class='text-end'>";
-                        echo "<a href='editar-servico.php?id=" . $row['id_servico'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";
-                        echo "<a href='apagar-servico.php?id=" . $row['id_servico'] . "' class='btn btn-sm btn-icon btn-danger' onclick=\"return confirm('Tem a certeza que deseja eliminar?');\" ><i class='ti ti-trash'></i></a>";
-                        echo "</td>";
-                        echo "</tr>";
+                    if ($result_cat->num_rows > 0) {
+                      while ($row_cat = $result_cat->fetch_assoc()) {
+                        $sel = ($row_cat['id_categoria'] == $current_categoria) ? ' selected' : '';
+                        echo "<option value='" . htmlspecialchars($row_cat['id_categoria']) . "'" . $sel . ">" . htmlspecialchars($row_cat['nome']) . "</option>";
                       }
-                    } else {
-                      echo "<tr><td colspan='3' class='text-center'>Nenhum serviço encontrado</td></tr>";
                     }
                     ?>
-                  
-  
-       
-     
-         
-                  </tbody>
-                </table>
-              </div>
+                  </select><br>
+                  <label class="form-label">Horas</label>
+                  <input type="text" class="form-control" name="horas" id="horas" value="<?php echo htmlspecialchars($current_horas); ?>" required="">
+                  <label class="form-label">Prestador</label>
+                  <select class="form-control" name="prestador" id="prestador" required="">
+                    <option value="">Selecione um prestador</option>
+                    <?php
+                    // Fetch all users from database
+                    $sql_prest = "SELECT id_utilizador, nome FROM utilizadores ORDER BY nome ASC";
+                    $result_prest = $conn->query($sql_prest);
+
+                    if ($result_prest->num_rows > 0) {
+                      while ($row_prest = $result_prest->fetch_assoc()) {
+                        $sel = ($row_prest['id_utilizador'] == $current_prestador) ? ' selected' : '';
+                        echo "<option value='" . htmlspecialchars($row_prest['id_utilizador']) . "'" . $sel . ">" . htmlspecialchars($row_prest['nome']) . "</option>";
+                      }
+                    }
+                    ?>
+                  </select><br>
+                  <button type="submit" class="btn btn-primary mt-3">Gravar</button>
+                  <a href="servicos.php" class="btn btn-secondary mt-3 ms-2">Cancelar</a>
+                    </form>
             </div>
           </div>
         </div>

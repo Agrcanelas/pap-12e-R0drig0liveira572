@@ -214,7 +214,7 @@ include '../config.php';
                         echo "<tr>";
                         echo "<td>" . htmlspecialchars($row['nome']) . "</td>";
                         echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['perfil']) . "</td>";
+                        echo "<td>" . ($row['perfil'] == 1 ? 'Admin' : 'Subscritor') . "</td>";
                         echo "<td>" . htmlspecialchars($row['creditos']) . "</td>";
                         echo "<td class='text-end'>";
                         echo "<a href='editar-utilizador.php?id=" . $row['id_utilizador'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";

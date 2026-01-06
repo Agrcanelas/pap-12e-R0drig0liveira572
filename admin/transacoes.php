@@ -1,3 +1,6 @@
+<?php
+include '../config.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <!-- [Head] start -->
@@ -193,32 +196,51 @@
                 <table class="table table-hover table-borderless mb-0">
                   <thead>
                     <tr>
-                      <th>NOME</th>
-                      <th>EMAIL</th>
-                      <th>PERFIL</th>
-                      <th>CRÉDITOS</th>
+                      <th>ID</th>
+                      <th>TRANSAÇÃO</th>
+                      <th>ESTADO</th>
+                      <th>DATA</th>
                       <th class="text-end">AÇÕES</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td><a href="#" class="text-muted">84564564</a></td>
-                      <td>Camera Lens</td>
-                      <td>40</td>
-                      <td><span class="d-flex align-items-center gap-2"><i
-                            class="fas fa-circle text-danger f-10 m-r-5"></i>Rejected</span>
-                      </td>
-                      <td class="text-end">$40,570</td>
-                    </tr>
-                    <tr>
-                      <td><a href="#" class="text-muted">84564564</a></td>
-                      <td>Laptop</td>
-                      <td>300</td>
-                      <td><span class="d-flex align-items-center gap-2"><i
-                            class="fas fa-circle text-warning f-10 m-r-5"></i>Pending</span>
-                      </td>
-                      <td class="text-end">$180,139</td>
-                    </tr>
+                    <?php
+                    // Fetch transactions and display
+                    $sql = "SELECT 
+                      t.id_transacao, 
+                      t.id_receptor, 
+                      t.id_servico, 
+                      t.horas_trocadas, 
+                      t.estado, 
+                      t.data,
+                      u_prestador.nome AS nome_prestador,
+                      u_receptor.nome AS nome_receptor,
+                      s.nome AS nome_servico
+                    FROM transacoes t
+                    LEFT JOIN servicos s ON t.id_servico = s.id_servico
+                    LEFT JOIN utilizadores u_prestador ON s.id_prestador = u_prestador.id_utilizador
+                    LEFT JOIN utilizadores u_receptor ON t.id_receptor = u_receptor.id_utilizador
+                    ORDER BY t.data DESC";
+                    $result = $conn->query($sql);
+
+                    if ($result && $result->num_rows > 0) {
+                      while ($row = $result->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($row['id_transacao']) . "</td>";
+                        echo "<td>Prestador: " . htmlspecialchars($row['nome_prestador'] ?? 'N/A') . "<br>Receptor: " . htmlspecialchars($row['nome_receptor'] ?? 'N/A') . "<br>Serviço: " . htmlspecialchars($row['nome_servico'] ?? 'N/A') . "<br>Horas: " . htmlspecialchars($row['horas_trocadas']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['estado']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['data']) . "</td>";
+                        echo "<td class='text-end'>";
+                        echo "<a href='editar-transacao.php?id=" . $row['id_transacao'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";
+                        echo "<a href='apagar-transacao.php?id=" . $row['id_transacao'] . "' class='btn btn-sm btn-icon btn-danger' onclick=\"return confirm('Tem a certeza que deseja eliminar?');\" ><i class='ti ti-trash'></i></a>";
+                        echo "</td>";
+                        echo "</tr>";
+                      }
+                    } else {
+                      echo "<tr><td colspan='5' class='text-center'>Nenhuma transação encontrada</td></tr>";
+                    }
+                    ?>
+               
   
        
      
