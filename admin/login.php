@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $message_type = 'error';
   } else {
     // Prepare and execute query to find user
-    $sql = "SELECT id_utilizador, nome, perfil FROM utilizadores WHERE email = ? AND password = ? LIMIT 1";
+    $sql = "SELECT id_utilizador, nome, perfil, creditos FROM utilizadores WHERE email = ? AND password = ? LIMIT 1";
     $stmt = $conn->prepare($sql);
     
     if ($stmt) {
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       $stmt->bind_param("ss", $email, $password_hashed);
       
       if ($stmt->execute()) {
-        $stmt->bind_result($id_utilizador, $nome, $perfil);
+        $stmt->bind_result($id_utilizador, $nome, $perfil, $creditos);
         
         if ($stmt->fetch()) {
           // User found, check perfil
@@ -42,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['user_name'] = $nome;
             $_SESSION['user_email'] = $email;
             $_SESSION['user_perfil'] = $perfil;
+            $_SESSION['user_creditos'] = $creditos;
             
             $message = 'Login realizado com sucesso!';
             $message_type = 'success';
