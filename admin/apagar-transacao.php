@@ -1,4 +1,7 @@
 <?php
+if (session_status() !== PHP_SESSION_ACTIVE) {
+  session_start();
+}
 include '../config.php';
 
 // Messages
@@ -193,13 +196,21 @@ if ($id > 0) {
         <ul class="list-unstyled">
           <li class="dropdown pc-h-item header-user-profile">
 
-            <i class="ti ti-coin"></i>&nbsp;6 créditos
+              <?php
+            $user_creditos = isset($_SESSION['user_creditos']) ? htmlspecialchars($_SESSION['user_creditos']) : '0';
+            echo '<i class="ti ti-coin"></i>&nbsp;' . $user_creditos . ' créditos';
+            ?>
 
           </li>
           <li class="dropdown pc-h-item header-user-profile">
             <a class="pc-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button"
               aria-haspopup="false" data-bs-auto-close="outside" aria-expanded="false">
-              <i class="ti ti-face-id"></i> <span>Olá Rodrigo</span>
+              <i class="ti ti-face-id"></i> <span>Olá  <?php
+            $user_name = isset($_SESSION['user_name']) ? htmlspecialchars($_SESSION['user_name']) : 'Utilizador';
+            // Extract first word from user name
+            $name_parts = explode(' ', $user_name);
+            echo $name_parts[0];
+            ?></span>
             </a>
             <div class="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown">
               <div class="tab-content" id="mysrpTabContent">
