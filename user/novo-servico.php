@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $descricao = isset($_POST['descricao']) ? trim($_POST['descricao']) : '';
   $categoria = isset($_POST['categoria']) ? trim($_POST['categoria']) : ''; 
   $horas = isset($_POST['horas']) ? trim($_POST['horas']) : '';
-  $prestador = isset($_POST['prestador']) ? trim($_POST['prestador']) : '';
+  $prestador = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
 
   // Validate input
   if (empty($nome)) {
@@ -249,21 +249,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               </select><br>
               <label class="form-label">Horas</label>
               <input type="text" class="form-control" name="horas" id="horas" required="">
-              <label class="form-label">Prestador</label>
-              <select class="form-control" name="prestador" id="prestador" required="">
-                <option value="">Selecione um prestador</option>
-                <?php
-                // Fetch all users from database
-                $sql_prest = "SELECT id_utilizador, nome FROM utilizadores ORDER BY nome ASC";
-                $result_prest = $conn->query($sql_prest);
-
-                if ($result_prest->num_rows > 0) {
-                  while ($row_prest = $result_prest->fetch_assoc()) {
-                    echo "<option value='" . htmlspecialchars($row_prest['id_utilizador']) . "'>" . htmlspecialchars($row_prest['nome']) . "</option>";
-                  }
-                }
-                ?>
-              </select><br>
+              <?php
+              // Hidden field with current user ID
+              $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+              echo "<input type='hidden' name='prestador' value='" . $user_id . "'>";
+              ?>
               <button type="submit" class="btn btn-primary mt-3">Adicionar serviço</button>
                 </form>
             </div>
