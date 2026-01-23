@@ -138,10 +138,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <label class="form-label">Password</label>
                 <input type="password" class="form-control" name="password" id="password" required>
               </div>
-              <div class="d-flex mt-1 justify-content-between">
-             
-                <h5 class="text-secondary f-w-400"><a href="recuperar-password.php"><small>Esqueceu a password?</small></a></h5>
-              </div>
               <div class="d-grid mt-4">
                 <button type="submit" class="btn btn-primary">Login</button>
               </div>
