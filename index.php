@@ -213,7 +213,7 @@ include 'config.php';
         <div class="hero-content">
             <h1>Banco do Tempo</h1>
             <p class="subtitle">Troque serviços e cultive comunidade</p>
-            <a href="login.php" class="btn-custom">Começar Agora</a>
+            <a href="user/login.php" class="btn-custom">Começar Agora</a>
         </div>
     </section>
 
