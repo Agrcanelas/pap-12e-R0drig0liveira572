@@ -267,7 +267,7 @@ include 'config.php';
                         echo '<p class="description">' . htmlspecialchars($row['descricao']) . '</p>';
                         echo '<div class="provider-info">';
                         echo '<span class="provider-name">👤 ' . htmlspecialchars($row['nome_prestador'] ?? 'Anónimo') . '</span>';
-                        echo '<span class="credits"><i class="ti ti-coin"></i> ' . htmlspecialchars($row['creditos']) . '</span>';
+                        echo '<span class="credits"><i class="ti ti-coin"></i> ' . htmlspecialchars($row['horas']) . ' créditos</span>';
                         echo '</div>';
                         echo '</div>';
                         echo '</div>';
