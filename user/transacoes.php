@@ -194,7 +194,7 @@ include '../config.php';
                     // Get current user ID from session
                     $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
                     
-                    // Fetch transactions and display
+                    // Fetch transactions where user is either the service owner OR the buyer
                     $sql = "SELECT 
                       t.id_transacao, 
                       t.id_receptor, 
@@ -202,6 +202,7 @@ include '../config.php';
                       t.horas_trocadas, 
                       t.estado, 
                       t.data,
+                      s.id_prestador,
                       u_prestador.nome AS nome_prestador,
                       u_receptor.nome AS nome_receptor,
                       s.nome AS nome_servico
@@ -209,23 +210,32 @@ include '../config.php';
                     LEFT JOIN servicos s ON t.id_servico = s.id_servico
                     LEFT JOIN utilizadores u_prestador ON s.id_prestador = u_prestador.id_utilizador
                     LEFT JOIN utilizadores u_receptor ON t.id_receptor = u_receptor.id_utilizador
-                    WHERE t.id_receptor = ?
+                    WHERE t.id_receptor = ? OR s.id_prestador = ?
                     ORDER BY t.data DESC";
                     $stmt = $conn->prepare($sql);
-                    $stmt->bind_param("i", $user_id);
+                    $stmt->bind_param("ii", $user_id, $user_id);
                     $stmt->execute();
                     $result = $stmt->get_result();
 
                     if ($result && $result->num_rows > 0) {
                       while ($row = $result->fetch_assoc()) {
+                        $is_owner = (int)$row['id_prestador'] === $user_id;
+                        
                         echo "<tr>";
                         echo "<td>" . htmlspecialchars($row['id_transacao']) . "</td>";
                         echo "<td>Prestador: " . htmlspecialchars($row['nome_prestador'] ?? 'N/A') . "<br>Receptor: " . htmlspecialchars($row['nome_receptor'] ?? 'N/A') . "<br>Serviço: " . htmlspecialchars($row['nome_servico'] ?? 'N/A') . "<br>Horas: " . htmlspecialchars($row['horas_trocadas']) . "</td>";
                         echo "<td>" . htmlspecialchars($row['estado']) . "</td>";
                         echo "<td>" . htmlspecialchars($row['data']) . "</td>";
                         echo "<td class='text-end'>";
-                        echo "<a href='editar-transacao.php?id=" . $row['id_transacao'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";
-                        echo "<a href='apagar-transacao.php?id=" . $row['id_transacao'] . "' class='btn btn-sm btn-icon btn-danger' onclick=\"return confirm('Tem a certeza que deseja eliminar?');\" ><i class='ti ti-trash'></i></a>";
+                        
+                        // Only show edit/delete buttons if user is the service owner
+                        if ($is_owner) {
+                          echo "<a href='editar-transacao.php?id=" . $row['id_transacao'] . "' class='btn btn-sm btn-icon btn-warning'><i class='ti ti-edit'></i></a> ";
+                          echo "<a href='apagar-transacao.php?id=" . $row['id_transacao'] . "' class='btn btn-sm btn-icon btn-danger' onclick=\"return confirm('Tem a certeza que deseja eliminar?');\" ><i class='ti ti-trash'></i></a>";
+                        } else {
+                          echo "<span class='text-muted'>Sem permissão</span>";
+                        }
+                        
                         echo "</td>";
                         echo "</tr>";
                       }
