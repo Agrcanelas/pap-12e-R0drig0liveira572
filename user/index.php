@@ -4,6 +4,11 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 include '../config.php';
 
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+  header("Location: login.php");
+  exit();
+}
 
 // Get current user ID from session
 $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;

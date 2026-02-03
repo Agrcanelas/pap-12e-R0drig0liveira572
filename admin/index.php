@@ -4,6 +4,12 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 include '../config.php';
 
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+  header("Location: login.php");
+  exit();
+}
+
 // Count total utilizadores for dashboard
 $total_utilizadores = 0;
 $sql_count = "SELECT COUNT(*) AS total FROM utilizadores";
