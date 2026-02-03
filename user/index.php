@@ -65,6 +65,98 @@ if ($stmt_count = $conn->prepare($sql_count)) {
   <link rel="stylesheet" href="../assets/fonts/material.css">
   <!-- [Template CSS Files] -->
   <link rel="stylesheet" href="../assets/css/style.css" id="main-style-link">
+  <style>
+    /* Services Catalog Section */
+    .services-catalog {
+      margin-top: 40px;
+    }
+
+    .catalog-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #343a40;
+      margin-bottom: 30px;
+    }
+
+    .service-card {
+      background: white;
+      border: 1px solid #e9ecef;
+      border-radius: 10px;
+      padding: 20px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      height: 100%;
+    }
+
+    .service-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .service-card h5 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .service-card .description {
+      color: #6c757d;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+    }
+
+    .service-card .provider-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 15px;
+      border-top: 1px solid #e9ecef;
+    }
+
+    .service-card .provider-name {
+      color: #343a40;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .service-card .credits {
+      background-color: #667eea;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .service-card .buy-button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 10px;
+      background-color: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .service-card .buy-button:hover {
+      background-color: #5568d3;
+    }
+
+    .service-card .buy-button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .no-services-message {
+      text-align: center;
+      padding: 40px;
+      color: #6c757d;
+      font-size: 1.1rem;
+    }
+  </style>
 
 </head>
 <!-- [Head] end -->
@@ -195,6 +287,31 @@ if ($stmt_count = $conn->prepare($sql_count)) {
   <div class="pc-container">
     <div class="pc-content">
 
+      <!-- Alert Messages -->
+      <?php
+      if (isset($_GET['success']) && $_GET['success'] == '1') {
+        echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
+        echo '<i class="ti ti-check"></i> Serviço comprado com sucesso! Créditos transferidos.';
+        echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        echo '</div>';
+      }
+      
+      if (isset($_GET['error'])) {
+        $error = htmlspecialchars($_GET['error']);
+        $error_messages = [
+          'creditos_insuficientes' => 'Créditos insuficientes para comprar este serviço.',
+          'servico_nao_encontrado' => 'Serviço não encontrado.',
+          'nao_pode_comprar_seu_servico' => 'Não pode comprar o seu próprio serviço.',
+          'dados_invalidos' => 'Dados inválidos. Tente novamente.',
+          'erro_transacao' => 'Erro ao processar a transação. Tente novamente.'
+        ];
+        $message = isset($error_messages[$error]) ? $error_messages[$error] : 'Ocorreu um erro.';
+        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
+        echo '<i class="ti ti-alert-triangle"></i> ' . $message;
+        echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        echo '</div>';
+      }
+      ?>
 
       <!-- [ Main Content ] start -->
       <div class="row">
@@ -214,6 +331,65 @@ if ($stmt_count = $conn->prepare($sql_count)) {
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Services Catalogue Section -->
+      <div class="services-catalog">
+        <h2 class="catalog-title">Serviços disponíveis para mim</h2>
+        <div class="row">
+          <?php
+          // Fetch all services EXCEPT the current user's services
+          $sql_services = "SELECT 
+              s.id_servico,
+              s.nome,
+              s.descricao,
+              s.horas,
+              u.nome AS nome_prestador,
+              u.creditos
+          FROM servicos s
+          LEFT JOIN utilizadores u ON s.id_prestador = u.id_utilizador
+          WHERE s.id_prestador != ?
+          ORDER BY s.data DESC";
+          
+          $stmt_services = $conn->prepare($sql_services);
+          $stmt_services->bind_param("i", $user_id);
+          $stmt_services->execute();
+          $result_services = $stmt_services->get_result();
+          
+          if ($result_services && $result_services->num_rows > 0) {
+              while ($row = $result_services->fetch_assoc()) {
+                  $user_credits = isset($_SESSION['user_creditos']) ? (int)$_SESSION['user_creditos'] : 0;
+                  $horas = (int)$row['horas'];
+                  $can_buy = $user_credits >= $horas;
+                  
+                  echo '<div class="col-md-6 col-lg-4 mb-3">';
+                  echo '<div class="service-card">';
+                  echo '<h5>' . htmlspecialchars($row['nome']) . '</h5>';
+                  echo '<p class="description">' . htmlspecialchars($row['descricao']) . '</p>';
+                  echo '<div class="provider-info">';
+                  echo '<span class="provider-name">👤 ' . htmlspecialchars($row['nome_prestador'] ?? 'Anónimo') . '</span>';
+                  echo '<span class="credits"><i class="ti ti-coin"></i> ' . $horas . ' créditos</span>';
+                  echo '</div>';
+                  echo '<form method="POST" action="comprar-servico.php" style="margin-top: 10px;">';
+                  echo '<input type="hidden" name="id_servico" value="' . (int)$row['id_servico'] . '">';
+                  echo '<input type="hidden" name="horas" value="' . $horas . '">';
+                  echo '<button type="submit" class="buy-button"' . ($can_buy ? '' : ' disabled') . '>';
+                  echo $can_buy ? 'Comprar' : 'Créditos insuficientes';
+                  echo '</button>';
+                  echo '</form>';
+                  echo '</div>';
+                  echo '</div>';
+              }
+          } else {
+              echo '<div class="col-12">';
+              echo '<div class="no-services-message">Nenhum serviço disponível no momento.</div>';
+              echo '</div>';
+          }
+          $stmt_services->close();
+          ?>
+        </div>
+      </div>
+      <!-- [ Main Content ] end -->
 
         <!-- Required Js -->
         <script src="../assets/js/plugins/popper.min.js"></script>
