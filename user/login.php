@@ -32,19 +32,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($stmt->fetch()) {
           // User found, check perfil
           if ($perfil == 0) {
-            // Admin user, set session and redirect to admin login page
+            // Admin user (profile 0), set session and redirect to admin area
             $_SESSION['user_id'] = $id_utilizador;
             $_SESSION['user_name'] = $nome;
             $_SESSION['user_email'] = $email;
             $_SESSION['user_perfil'] = $perfil;
             $_SESSION['user_creditos'] = $creditos;
             
+            $message = 'Login realizado com sucesso!';
+            $message_type = 'success';
             $stmt->close();
-            // Redirect to admin area
-            header("Location: index.php");
+            // Redirect to admin dashboard after 2 seconds
+            header("Refresh: 2; url=index.php");
             exit();
           } elseif ($perfil == 1) {
-            // Subscriber user, allow login to this page
+            // Regular user (profile 1), allow login to user area
             $_SESSION['user_id'] = $id_utilizador;
             $_SESSION['user_name'] = $nome;
             $_SESSION['user_email'] = $email;
@@ -58,7 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header("Refresh: 2; url=index.php");
             exit();
           } else {
-            $message = 'Acesso negado.';
+            // Other profiles - reject access
+            $message = 'Acesso negado. Perfil não autorizado.';
             $message_type = 'error';
           }
         } else {
