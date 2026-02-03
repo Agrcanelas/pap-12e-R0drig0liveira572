@@ -31,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         if ($stmt->fetch()) {
           // User found, check perfil
-          if ($perfil == 0) {
-            // Admin user, set session and redirect to admin index
+          if ($perfil == 1) {
+            // Regular user with profile 1 can access admin area
             $_SESSION['user_id'] = $id_utilizador;
             $_SESSION['user_name'] = $nome;
             $_SESSION['user_email'] = $email;
@@ -45,12 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Redirect to admin dashboard after 2 seconds
             header("Refresh: 2; url=index.php");
             exit();
-          } elseif ($perfil == 1) {
-            // Regular user trying to access admin area - reject
-            $message = 'Acesso negado. Esta área é apenas para administradores.';
-            $message_type = 'error';
           } else {
-            $message = 'Acesso negado.';
+            // Profile 0 or other profiles - reject access
+            $message = 'Acesso negado. Apenas utilizadores com perfil autorizado podem aceder.';
             $message_type = 'error';
           }
         } else {
