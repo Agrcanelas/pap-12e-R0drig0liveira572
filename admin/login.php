@@ -32,12 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($stmt->fetch()) {
           // User found, check perfil
           if ($perfil == 0) {
-            // Admin user, redirect to admin index
-            $stmt->close();
-            header("Location: ../index.php");
-            exit();
-          } elseif ($perfil == 1) {
-            // Subscriber user, allow login to this page
+            // Admin user, set session and redirect to admin index
             $_SESSION['user_id'] = $id_utilizador;
             $_SESSION['user_name'] = $nome;
             $_SESSION['user_email'] = $email;
@@ -46,8 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             $message = 'Login realizado com sucesso!';
             $message_type = 'success';
-            // Redirect to user dashboard or home after 2 seconds
+            $stmt->close();
+            // Redirect to admin dashboard after 2 seconds
             header("Refresh: 2; url=index.php");
+            exit();
+          } elseif ($perfil == 1) {
+            // Regular user trying to access admin area - reject
+            $message = 'Acesso negado. Esta área é apenas para administradores.';
+            $message_type = 'error';
           } else {
             $message = 'Acesso negado.';
             $message_type = 'error';
