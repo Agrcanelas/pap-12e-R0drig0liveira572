@@ -32,9 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($stmt->fetch()) {
           // User found, check perfil
           if ($perfil == 0) {
-            // Admin user, redirect to admin index
+            // Admin user, set session and redirect to admin login page
+            $_SESSION['user_id'] = $id_utilizador;
+            $_SESSION['user_name'] = $nome;
+            $_SESSION['user_email'] = $email;
+            $_SESSION['user_perfil'] = $perfil;
+            $_SESSION['user_creditos'] = $creditos;
+            
             $stmt->close();
-            header("Location: ../index.php");
+            // Redirect to admin area
+            header("Location: index.php");
             exit();
           } elseif ($perfil == 1) {
             // Subscriber user, allow login to this page
@@ -46,8 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             $message = 'Login realizado com sucesso!';
             $message_type = 'success';
+            $stmt->close();
             // Redirect to user dashboard or home after 2 seconds
             header("Refresh: 2; url=index.php");
+            exit();
           } else {
             $message = 'Acesso negado.';
             $message_type = 'error';
@@ -118,6 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-end mb-4">
               <h3 class="mb-0"><b>Login</b></h3>
+              <a href="registo.php" class="link-primary">Criar nova conta</a>
             </div>
             <?php
             // Display message if exists
