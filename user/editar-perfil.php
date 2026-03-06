@@ -371,9 +371,9 @@ if ($id > 0) {
               <input type="file" class="form-control" name="foto" id="foto" accept=".jpg,.jpeg,.png,.gif,.bmp"><br>
               <small class="text-muted">Formatos permitidos: jpg, jpeg, png, gif, bmp</small><br>
               <label class="form-label">Créditos</label>
-              <input type="number" class="form-control" name="creditos" id="creditos" value="<?php echo htmlspecialchars($current_creditos); ?>"><br>
+              <input type="number" class="form-control" name="creditos" id="creditos" value="<?php echo htmlspecialchars($current_creditos); ?>" disabled><br>
               <label class="form-label">Perfil</label>
-              <select class="form-control" name="perfil" id="perfil" required="">
+              <select class="form-control" name="perfil" id="perfil" required=""  disabled>
                 <option value="0" <?php echo ($current_perfil === '0' || $current_perfil === 0) ? 'selected' : ''; ?>>Subscritor</option>
                 <option value="1" <?php echo ($current_perfil === '1' || $current_perfil === 1) ? 'selected' : ''; ?>>Admin</option>
               </select>
